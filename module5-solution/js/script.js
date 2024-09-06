@@ -1,6 +1,4 @@
 $(function () { // Same as document.addEventListener("DOMContentLoaded"...
-
-  // Same as document.querySelector("#navbarToggle").addEventListener("blur",...
   $("#navbarToggle").blur(function (event) {
     var screenWidth = window.innerWidth;
     if (screenWidth < 768) {
@@ -40,8 +38,7 @@ var showLoading = function (selector) {
 // with propValue in given 'string'
 var insertProperty = function (string, propName, propValue) {
   var propToReplace = "{{" + propName + "}}";
-  string = string
-    .replace(new RegExp(propToReplace, "g"), propValue);
+  string = string.replace(new RegExp(propToReplace, "g"), propValue);
   return string;
 };
 
@@ -65,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     allCategoriesUrl,
-    buildAndShowHomeHTML, // ***** Substituted value ******
+    buildAndShowHomeHTML, // Function to call after categories are retrieved
     true); // Explicitly setting the flag to get JSON from server processed into an object literal
 });
 
@@ -75,16 +72,17 @@ function buildAndShowHomeHTML (categories) {
   $ajaxUtils.sendGetRequest(
     homeHtmlUrl,
     function (homeHtml) {
-      // Step 2: Get random category short_name
+      // STEP 2: Random category short name selection
       var chosenCategoryShortName = chooseRandomCategory(categories).short_name;
-      
-      // Step 3: Substitute {{randomCategoryShortName}} in the HTML snippet
-      var homeHtmlToInsertIntoMainPage = insertProperty(homeHtml, "randomCategoryShortName", "'" + chosenCategoryShortName + "'");
-      
-      // Step 4: Insert the HTML into the main page
+
+      // STEP 3: Substitute {{randomCategoryShortName}} in the home snippet
+      var homeHtmlToInsertIntoMainPage =
+        insertProperty(homeHtml, "randomCategoryShortName", "'" + chosenCategoryShortName + "'");
+
+      // STEP 4: Insert the HTML into the main content
       insertHtml("#main-content", homeHtmlToInsertIntoMainPage);
     },
-    false);
+    false); // False because we're just retrieving regular HTML
 }
 
 // Given array of category objects, returns a random category object.
@@ -95,18 +93,14 @@ function chooseRandomCategory (categories) {
 
 // Load the menu categories view
 dc.loadMenuCategories = function () {
-  showLoading("#main-content");
-  $ajaxUtils.sendGetRequest(
-    allCategoriesUrl,
-    buildAndShowCategoriesHTML);
+  showLoading("#main-content");  // Show loading spinner
+  $ajaxUtils.sendGetRequest(allCategoriesUrl, buildAndShowCategoriesHTML);
 };
 
 // Load the menu items view
 dc.loadMenuItems = function (categoryShort) {
-  showLoading("#main-content");
-  $ajaxUtils.sendGetRequest(
-    menuItemsUrl + categoryShort + ".json",
-    buildAndShowMenuItemsHTML);
+  showLoading("#main-content");  // Show loading spinner
+  $ajaxUtils.sendGetRequest(menuItemsUrl + categoryShort + ".json", buildAndShowMenuItemsHTML);
 };
 
 // Builds HTML for the categories page based on the data
@@ -118,8 +112,7 @@ function buildAndShowCategoriesHTML (categories) {
         categoryHtml,
         function (categoryHtml) {
           switchMenuToActive();
-          var categoriesViewHtml =
-            buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml);
+          var categoriesViewHtml = buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml);
           insertHtml("#main-content", categoriesViewHtml);
         },
         false);
@@ -195,21 +188,21 @@ function buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemH
   return finalHtml;
 }
 
+// Append price with '$' if price exists
 function insertItemPrice(html, pricePropName, priceValue) {
   if (!priceValue) {
     return insertProperty(html, pricePropName, "");
   }
-
   priceValue = "$" + priceValue.toFixed(2);
   html = insertProperty(html, pricePropName, priceValue);
   return html;
 }
 
+// Append portion name in parens if it exists
 function insertItemPortionName(html, portionPropName, portionValue) {
   if (!portionValue) {
     return insertProperty(html, portionPropName, "");
   }
-
   portionValue = "(" + portionValue + ")";
   html = insertProperty(html, portionPropName, portionValue);
   return html;
